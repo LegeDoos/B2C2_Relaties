@@ -1,4 +1,4 @@
-﻿@model B2C2_Relaties.Models.Product
+﻿@model B2C2_Relaties.Models.ViewModel.ProductViewModel
 
 @{
     ViewData["Title"] = "Edit";
@@ -19,10 +19,42 @@
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label asp-for="CategoryToAdd" class="control-label"></label>
+                <input asp-for="CategoryToAdd" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>
         </form>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        Categories:
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Categories != null)
+                {
+                    @foreach (var item in Model.Categories)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Name)
+                            </td>
+                        </tr>
+                    }
+
+                }
+            </tbody>
+        </table>
+    
     </div>
+
 </div>
 
 <div>

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using B2C2_Relaties.Data;
 using B2C2_Relaties.Models;
+using B2C2_Relaties.Models.ViewModel;
 
 namespace B2C2_Relaties.Controllers
 {
@@ -73,12 +74,20 @@ namespace B2C2_Relaties.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products.FindAsync(id);
+            // vergeet include van categories niet!
+            var product = await _context.Products.Include(p => p.Categories).FirstOrDefaultAsync(p => p.Id == id);
+
+            // add to viewmodel
+            ProductViewModel productViewModel = new ProductViewModel();
+            productViewModel.Id = product.Id;
+            productViewModel.Name = product.Name;
+            productViewModel.Categories = product.Categories;
+
             if (product == null)
             {
                 return NotFound();
             }
-            return View(product);
+            return View(productViewModel);
         }
 
         // POST: Products/Edit/5
@@ -86,9 +95,9 @@ namespace B2C2_Relaties.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,CategoryToAdd")] ProductViewModel productViewModel)
         {
-            if (id != product.Id)
+            if (id != productViewModel.Id)
             {
                 return NotFound();
             }
@@ -97,12 +106,32 @@ namespace B2C2_Relaties.Controllers
             {
                 try
                 {
-                    _context.Update(product);
+                    // ophalen product
+                    Product productToUpdate = _context.Products.Include(p => p.Categories).FirstOrDefaultAsync(p => p.Id == id).Result;
+
+                    // velden updaten
+                    productToUpdate.Name = productViewModel.Name;
+
+                    // ophalen category
+                    if (productViewModel.CategoryToAdd != null)
+                    {
+                        Category category = _context.Categories.FirstOrDefaultAsync(c => c.Id == productViewModel.CategoryToAdd).Result;
+
+                        // relatie leggen
+                        if (productToUpdate.Categories == null)
+                        {
+                            productToUpdate.Categories = new List<Category>();
+                        }
+                        productToUpdate.Categories.Add(category);
+                    }
+
+                    // opslaan
+                    _context.Update(productToUpdate);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProductExists(product.Id))
+                    if (!ProductExists(productViewModel.Id))
                     {
                         return NotFound();
                     }
@@ -113,7 +142,7 @@ namespace B2C2_Relaties.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(product);
+            return View(productViewModel);
         }
 
         // GET: Products/Delete/5
