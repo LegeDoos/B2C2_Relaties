@@ -19,6 +19,7 @@ namespace B2C2_Relaties.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            //https://learn.microsoft.com/en-us/ef/core/modeling/data-seeding
             modelBuilder.Entity<Product>().HasData(new Product { Id = 1, Name = "Product 1" });
             modelBuilder.Entity<Product>().HasData(new Product { Id = 2, Name = "Product 2" });
             modelBuilder.Entity<Product>().HasData(new Product { Id = 3, Name = "Product 3" });
